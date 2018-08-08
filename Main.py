@@ -19,20 +19,21 @@ from argparse import Namespace
 
 __version__ = "3.0"
 __flash_help__ = '''
-<p>This setting is highly dependent on your device!<p>
+<p>设置取决于你的设备!<p>
 <p>
   Details at <a style="color: #004CE5;"
         href="https://www.esp32.com/viewtopic.php?p=5523&sid=08ef44e13610ecf2a2a33bb173b0fd5c#p5523">http://bit.ly/2v5Rd32</a>
   and in the <a style="color: #004CE5;" href="https://github.com/espressif/esptool/#flash-modes">esptool
   documentation</a>
 <ul>
-  <li>Most ESP32 and ESP8266 ESP-12 use DIO.</li>
-  <li>Most ESP8266 ESP-01/07 use QIO.</li>
-  <li>ESP8285 requires DOUT.</li>
+  <li>大多数 ESP32 和 ESP8266 ESP-12 使用 DIO.</li>
+  <li>大多数 ESP8266 ESP-01/07 使用 QIO.</li>
+  <li>ESP8285 要求 DOUT.</li>
 </ul>
 </p>
 '''
 __supported_baud_rates__ = [9600, 57600, 74880, 115200, 230400, 460800, 921600]
+
 
 # ---------------------------------------------------------------------------
 
@@ -58,6 +59,7 @@ class RedirectText:
         # noinspection PyStatementEffect
         None
 
+
 # ---------------------------------------------------------------------------
 
 
@@ -74,7 +76,7 @@ class FlashingThread(threading.Thread):
             initial_baud = min(ESPLoader.ESP_ROM_BAUD, self._config.baud)
 
             esp = ESPLoader.detect_chip(self._config.port, initial_baud)
-            print("Chip is %s" % (esp.get_chip_description()))
+            print("芯片类型: %s" % (esp.get_chip_description()))
 
             esp = esp.run_stub()
 
@@ -82,7 +84,7 @@ class FlashingThread(threading.Thread):
                 try:
                     esp.change_baud(self._config.baud)
                 except NotImplementedInROMError:
-                    print("WARNING: ROM doesn't support changing baud rate. Keeping initial baud rate %d." %
+                    print("警告: ROM 不支持改变波特率. 请保持初始波特率 %d." %
                           initial_baud)
 
             args = Namespace()
@@ -107,6 +109,7 @@ class FlashingThread(threading.Thread):
         except SerialException as e:
             self._parent.report_error(e.strerror)
             raise e
+
 
 # ---------------------------------------------------------------------------
 
@@ -145,6 +148,7 @@ class FlashConfig:
 
     def is_complete(self):
         return self.firmware_path is not None and self.port is not None
+
 
 # ---------------------------------------------------------------------------
 
@@ -221,7 +225,7 @@ class NodeMcuFlasher(wx.Frame):
         file_picker.Bind(wx.EVT_FILEPICKER_CHANGED, on_pick_file)
 
         serial_boxsizer = wx.BoxSizer(wx.HORIZONTAL)
-        serial_boxsizer.Add(self.choice, 1,  wx.EXPAND)
+        serial_boxsizer.Add(self.choice, 1, wx.EXPAND)
         serial_boxsizer.AddStretchSpacer(0)
         serial_boxsizer.Add(reload_button, 0, wx.ALIGN_RIGHT, 20)
 
@@ -267,10 +271,10 @@ class NodeMcuFlasher(wx.Frame):
             sizer.AddSpacer(10)
 
         erase = self._config.erase_before_flash
-        add_erase_radio_button(erase_boxsizer, 0, False, "no", erase is False)
-        add_erase_radio_button(erase_boxsizer, 1, True, "yes, wipes all data", erase is True)
+        add_erase_radio_button(erase_boxsizer, 0, False, "否", erase is False)
+        add_erase_radio_button(erase_boxsizer, 1, True, "是,清除所有数据", erase is True)
 
-        button = wx.Button(panel, -1, "Flash NodeMCU")
+        button = wx.Button(panel, -1, "烧写")
         button.Bind(wx.EVT_BUTTON, on_clicked)
 
         self.console_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
@@ -279,10 +283,10 @@ class NodeMcuFlasher(wx.Frame):
         self.console_ctrl.SetForegroundColour(wx.RED)
         self.console_ctrl.SetDefaultStyle(wx.TextAttr(wx.RED))
 
-        port_label = wx.StaticText(panel, label="Serial port")
-        file_label = wx.StaticText(panel, label="NodeMCU firmware")
-        baud_label = wx.StaticText(panel, label="Baud rate")
-        flashmode_label = wx.StaticText(panel, label="Flash mode")
+        port_label = wx.StaticText(panel, label="串口选择")
+        file_label = wx.StaticText(panel, label="8266 固件")
+        baud_label = wx.StaticText(panel, label="波特率")
+        flashmode_label = wx.StaticText(panel, label="烧写模式")
 
         def on_info_hover(event):
             from HtmlPopupTransientWindow import HtmlPopupTransientWindow
@@ -303,17 +307,17 @@ class NodeMcuFlasher(wx.Frame):
         flashmode_label_boxsizer.AddStretchSpacer(0)
         flashmode_label_boxsizer.Add(icon, 0, wx.ALIGN_RIGHT, 20)
 
-        erase_label = wx.StaticText(panel, label="Erase flash")
-        console_label = wx.StaticText(panel, label="Console")
+        erase_label = wx.StaticText(panel, label="清空flash")
+        console_label = wx.StaticText(panel, label="控制台")
 
         fgs.AddMany([
-                    port_label, (serial_boxsizer, 1, wx.EXPAND),
-                    file_label, (file_picker, 1, wx.EXPAND),
-                    baud_label, baud_boxsizer,
-                    flashmode_label_boxsizer, flashmode_boxsizer,
-                    erase_label, erase_boxsizer,
-                    (wx.StaticText(panel, label="")), (button, 1, wx.EXPAND),
-                    (console_label, 1, wx.EXPAND), (self.console_ctrl, 1, wx.EXPAND)])
+            port_label, (serial_boxsizer, 1, wx.EXPAND),
+            file_label, (file_picker, 1, wx.EXPAND),
+            baud_label, baud_boxsizer,
+            flashmode_label_boxsizer, flashmode_boxsizer,
+            erase_label, erase_boxsizer,
+            (wx.StaticText(panel, label="")), (button, 1, wx.EXPAND),
+            (console_label, 1, wx.EXPAND), (self.console_ctrl, 1, wx.EXPAND)])
         fgs.AddGrowableRow(6, 1)
         fgs.AddGrowableCol(1, 1)
         hbox.Add(fgs, proportion=2, flag=wx.ALL | wx.EXPAND, border=15)
@@ -340,7 +344,7 @@ class NodeMcuFlasher(wx.Frame):
     def _build_status_bar(self):
         self.statusBar = self.CreateStatusBar(2, wx.STB_SIZEGRIP)
         self.statusBar.SetStatusWidths([-2, -1])
-        status_text = "Welcome to NodeMCU PyFlasher %s" % __version__
+        status_text = "欢迎使用固件烧录工具 %s" % __version__
         self.statusBar.SetStatusText(status_text, 0)
 
     def _build_menu_bar(self):
@@ -355,12 +359,12 @@ class NodeMcuFlasher(wx.Frame):
         self.menuBar.Append(file_menu, "&File")
 
         # Help menu
-        help_menu = wx.Menu()
-        help_item = help_menu.Append(wx.ID_ABOUT, '&About NodeMCU PyFlasher', 'About')
-        self.Bind(wx.EVT_MENU, self._on_help_about, help_item)
-        self.menuBar.Append(help_menu, '&Help')
-
-        self.SetMenuBar(self.menuBar)
+        # help_menu = wx.Menu()
+        # help_item = help_menu.Append(wx.ID_ABOUT, '&About NodeMCU PyFlasher', 'About')
+        # self.Bind(wx.EVT_MENU, self._on_help_about, help_item)
+        # self.menuBar.Append(help_menu, '&Help')
+        #
+        # self.SetMenuBar(self.menuBar)
 
     @staticmethod
     def _get_config_file_path():
@@ -382,6 +386,7 @@ class NodeMcuFlasher(wx.Frame):
 
     def log_message(self, message):
         self.console_ctrl.AppendText(message)
+
 
 # ---------------------------------------------------------------------------
 
@@ -407,10 +412,11 @@ class MySplashScreen(wx.adv.SplashScreen):
             self._show_main()
 
     def _show_main(self):
-        frame = NodeMcuFlasher(None, "NodeMCU PyFlasher")
+        frame = NodeMcuFlasher(None, "NodeMCU 固件烧录")
         frame.Show()
         if self.__fc.IsRunning():
             self.Raise()
+
 
 # ---------------------------------------------------------------------------
 
@@ -419,7 +425,7 @@ class MySplashScreen(wx.adv.SplashScreen):
 class App(wx.App, wx.lib.mixins.inspection.InspectionMixin):
     def OnInit(self):
         wx.SystemOptions.SetOption("mac.window-plain-transition", 1)
-        self.SetAppName("NodeMCU PyFlasher")
+        self.SetAppName("NodeMCU 固件烧录")
 
         # Create and show the splash screen.  It will then create and
         # show the main frame when it is time to do so.  Normally when
@@ -439,10 +445,11 @@ class App(wx.App, wx.lib.mixins.inspection.InspectionMixin):
 def main():
     app = App(False)
     app.MainLoop()
+
+
 # ---------------------------------------------------------------------------
 
 
 if __name__ == '__main__':
     __name__ = 'Main'
     main()
-
